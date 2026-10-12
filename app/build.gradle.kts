@@ -58,7 +58,8 @@ android {
         release {
             isMinifyEnabled = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-            signingConfigs.findByName("release")?.let { signingConfig = it }
+            // fall back to debug signing so forks without the release keystore still get an installable apk
+            signingConfig = signingConfigs.findByName("release") ?: signingConfigs.getByName("debug")
             ndk { abiFilters += allAbis }
         }
         // debuggable build with HWASan (arm64) + UBSan in native code

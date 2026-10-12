@@ -102,8 +102,8 @@
     <string name="setting_auto_fullscreen_desc">Enter fullscreen when a client connects</string>
     <string name="setting_keep_screen_on">Keep screen on</string>
     <string name="setting_keep_screen_on_desc">Prevent sleeping while a client is connected</string>
-    <string name="setting_advertise_video">Advertise AirPlay video support</string>
-    <string name="setting_advertise_video_desc">When off, videos are cast as audio only streams</string>
+    <string name="setting_mirroring_only">Disable AirPlay Video (mirroring only)</string>
+    <string name="setting_mirroring_only_desc">Keeps screen mirroring when a video goes fullscreen instead of handing off the video URL</string>
     <string name="setting_advertise_audio">Advertise AirPlay audio support</string>
     <string name="setting_advertise_audio_desc">When off, the device can only be used for mirroring and will be hidden from media players</string>
     <string name="setting_alac">Advertise ALAC codec</string>

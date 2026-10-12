@@ -180,8 +180,8 @@ class MainViewModel @Inject constructor(app: Application) : AndroidViewModel(app
     private val _keepScreenOn = MutableStateFlow(prefs.getBoolean(Prefs.KEEP_SCREEN_ON, Prefs.DEF_KEEP_SCREEN_ON))
     val keepScreenOn: StateFlow<Boolean> = _keepScreenOn.asStateFlow()
 
-    private val _advertiseVideo = MutableStateFlow(prefs.getBoolean(Prefs.ADVERTISE_VIDEO, Prefs.DEF_ADVERTISE_VIDEO))
-    val advertiseVideo: StateFlow<Boolean> = _advertiseVideo.asStateFlow()
+    private val _mirroringOnly = MutableStateFlow(prefs.getBoolean(Prefs.MIRRORING_ONLY, Prefs.DEF_MIRRORING_ONLY))
+    val mirroringOnly: StateFlow<Boolean> = _mirroringOnly.asStateFlow()
 
     private val _advertiseAudio = MutableStateFlow(prefs.getBoolean(Prefs.ADVERTISE_AUDIO, Prefs.DEF_ADVERTISE_AUDIO))
     val advertiseAudio: StateFlow<Boolean> = _advertiseAudio.asStateFlow()
@@ -403,7 +403,7 @@ class MainViewModel @Inject constructor(app: Application) : AndroidViewModel(app
     fun setIdlePreview(v: Boolean) { _idlePreview.value = v; prefs.edit().putBoolean(Prefs.IDLE_PREVIEW, v).apply() }
     fun setAutoFullscreen(v: Boolean) { _autoFullscreen.value = v; prefs.edit().putBoolean(Prefs.AUTO_FULLSCREEN, v).apply() }
     fun setKeepScreenOn(v: Boolean) { _keepScreenOn.value = v; prefs.edit().putBoolean(Prefs.KEEP_SCREEN_ON, v).apply() }
-    fun setAdvertiseVideo(v: Boolean) { _advertiseVideo.value = v; prefs.edit().putBoolean(Prefs.ADVERTISE_VIDEO, v).apply(); _applyByServerRestart() }
+    fun setMirroringOnly(v: Boolean) { _mirroringOnly.value = v; prefs.edit().putBoolean(Prefs.MIRRORING_ONLY, v).apply(); _applyByServerRestart() }
     fun setAdvertiseAudio(v: Boolean) { _advertiseAudio.value = v; prefs.edit().putBoolean(Prefs.ADVERTISE_AUDIO, v).apply(); _applyByServerRestart() }
     fun setLaunchOnConnect(v: Boolean) { _launchOnConnect.value = v; prefs.edit().putBoolean(Prefs.LAUNCH_ON_CONNECT, v).apply() }
     fun setDebugEnabled(v: Boolean) { _debugEnabled.value = v; prefs.edit().putBoolean(Prefs.DEBUG_ENABLED, v).apply() }
