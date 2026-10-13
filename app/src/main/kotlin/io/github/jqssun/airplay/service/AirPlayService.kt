@@ -413,7 +413,10 @@ class AirPlayService : LifecycleService(), RaopCallbackHandler, LogListener {
         NativeBridge.nativeSetDisplaySize(nativeHandle, w, h, maxFps)
 
         val requestedPort = prefs.getInt(Prefs.SERVER_PORT, Prefs.DEF_SERVER_PORT).coerceIn(1, 65535)
-        val port = NativeBridge.nativeStart(nativeHandle, requestedPort)
+        // some tvs ship a cast service holding the port: fall back to the next few
+        val port = (requestedPort..minOf(requestedPort + 9, 65535)).firstNotNullOfOrNull { p ->
+            NativeBridge.nativeStart(nativeHandle, p).takeIf { it >= 0 }
+        } ?: -1
         if (port < 0) {
             log("Failed to start on port $requestedPort")
             _failStart()
