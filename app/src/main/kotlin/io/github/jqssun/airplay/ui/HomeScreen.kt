@@ -5,12 +5,12 @@ import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.net.wifi.WifiManager
 import android.provider.Settings
+import androidx.annotation.DrawableRes
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.LinearOutSlowInEasing
-import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
@@ -18,19 +18,15 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.text.BasicText
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.HelpOutline
-import androidx.compose.material.icons.rounded.Cast
-import androidx.compose.material.icons.rounded.Refresh
-import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material.icons.rounded.SettingsEthernet
 import androidx.compose.material.icons.rounded.Wifi
 import androidx.compose.material.icons.rounded.WifiOff
@@ -40,33 +36,43 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathMeasure
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
-import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.drawscope.scale
-import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.vector.PathParser
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.PlatformTextStyle
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.github.jqssun.airplay.R
@@ -80,9 +86,16 @@ import kotlin.math.min
 
 enum class HomeStatus { READY, CONNECTING, MIRRORING, ERROR, STOPPED }
 
-// the home screen is laid out on a fixed 960x540 canvas and scaled to the display
-private const val DESIGN_W = 960f
-private const val DESIGN_H = 540f
+// approved figma frame; every position below is in its design pixels
+private const val FRAME_W = 1920f
+private const val FRAME_H = 1080f
+
+// cable stroke from mirra_mirroring_cable.xml, kept as a path so it can draw on and carry the connecting dot
+private const val CABLE_PATH = "M 0 44 C 48 69 98 94 135 79 C 169 66 193 35 175 15 C 161 -3 136 7 125 27 " +
+    "C 109 56 129 101 154 127 C 237 215 469 230 637 225 C 789 222 880 202 925 173 C 950 157 950 135 932 124 " +
+    "C 915 113 896 126 899 143 C 902 170 932 184 954 176 C 994 164 1020 126 1040 83"
+private const val CABLE_VIEW_W = 1044f
+private const val CABLE_VIEW_H = 238f
 
 @Composable
 fun MirraHome(
@@ -126,93 +139,125 @@ fun MirraHome(
     LaunchedEffect(Unit) { if (tv) settingsFocus.requestFocusUntilLanded() }
 
     val network by rememberNetworkLabel()
+    val dotColor by animateColorAsState(
+        when (status) {
+            HomeStatus.READY -> Mirra.Lavender
+            HomeStatus.CONNECTING, HomeStatus.MIRRORING -> Mirra.Orange
+            HomeStatus.ERROR, HomeStatus.STOPPED -> Mirra.Gray
+        }, label = "dot"
+    )
 
     BoxWithConstraints(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Mirra.Background)
-            .safeDrawingPadding()
+        modifier = Modifier.fillMaxSize().background(Mirra.Background),
+        contentAlignment = Alignment.Center
     ) {
-        val landscape = maxWidth >= maxHeight
-        val k = if (landscape) min(maxWidth / DESIGN_W.dp, maxHeight / DESIGN_H.dp) else maxWidth / 420.dp
-        val density = LocalDensity.current
-        // scale dp and sp together so the layout keeps its proportions on any display
-        CompositionLocalProvider(LocalDensity provides Density(density.density * k, 1f)) {
-            if (landscape) {
-                Box(Modifier.align(Alignment.Center).size(DESIGN_W.dp, DESIGN_H.dp)) {
-                    Characters(
-                        charIn = charIn.value,
-                        cable = cable.value,
-                        smileScale = { smile.value },
-                        excitedAlpha = { excited.value },
-                        connecting = status == HomeStatus.CONNECTING && anims,
-                        modifier = Modifier.fillMaxSize()
-                    )
-                    Hero(
-                        deviceName, status, network, anims,
-                        modifier = Modifier
-                            .align(Alignment.TopCenter)
-                            .padding(top = 96.dp)
-                            .width(560.dp)
-                            .graphicsLayer { alpha = content.value },
-                        onRetry = onRetry,
-                        onShowScreen = onShowScreen,
-                    )
-                    Pill(
-                        text = stringResource(R.string.tab_settings),
-                        icon = Icons.Rounded.Settings,
-                        onClick = onOpenSettings,
-                        modifier = Modifier
-                            .align(Alignment.TopEnd)
-                            .padding(top = 22.dp, end = 32.dp)
-                            .focusRequester(settingsFocus)
-                    )
-                    Column(
-                        modifier = Modifier
-                            .align(Alignment.BottomStart)
-                            .fillMaxWidth()
-                            .padding(start = 32.dp, end = 32.dp, bottom = 22.dp)
-                    ) {
-                        Steps(deviceName, Modifier.graphicsLayer { alpha = content.value })
-                        Spacer(Modifier.height(18.dp))
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            SameWifiHint(Modifier.weight(1f).graphicsLayer { alpha = content.value })
-                            Pill(
-                                text = stringResource(R.string.home_cant_find, deviceName),
-                                icon = Icons.AutoMirrored.Rounded.HelpOutline,
-                                onClick = onOpenHelp
-                            )
+        val fit = min(maxWidth.value / FRAME_W, maxHeight.value / FRAME_H)
+        if (fit <= 0f) return@BoxWithConstraints
+        val base = LocalDensity.current
+        // one design pixel = one dp, then a single uniform fit; font scale is locked to keep the approved ratios
+        CompositionLocalProvider(
+            LocalDensity provides Density(base.density * fit, fontScale = 1f),
+            LocalLayoutDirection provides LayoutDirection.Ltr,
+        ) {
+            Box(Modifier.requiredSize(FRAME_W.dp, FRAME_H.dp).clipToBounds()) {
+                // illustrations
+                Cable(
+                    progress = { cable.value },
+                    connecting = status == HomeStatus.CONNECTING && anims,
+                    modifier = Modifier.place(313.493f, 469.416f, 1198.852f, 273.156f)
+                )
+                Box(
+                    Modifier
+                        .place(109.091f, 206.589f, 258.373f, 443.018f)
+                        .graphicsLayer {
+                            alpha = charIn.value
+                            translationX = -40.dp.toPx() * (1f - charIn.value)
                         }
-                    }
-                }
-            } else {
-                // portrait phones: stacked layout without the characters
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .verticalScroll(rememberScrollState())
-                        .padding(24.dp)
-                        .graphicsLayer { alpha = content.value },
-                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Pill(
-                        text = stringResource(R.string.tab_settings),
-                        icon = Icons.Rounded.Settings,
-                        onClick = onOpenSettings,
-                        modifier = Modifier.align(Alignment.End).focusRequester(settingsFocus)
+                    Art(R.drawable.mirra_phone_character)
+                    Art(R.drawable.mirra_phone_excited, Modifier.matchParentSize().graphicsLayer { alpha = excited.value })
+                }
+                Box(
+                    Modifier
+                        .place(1469.856f, 136.578f, 450.144f, 560.085f)
+                        .graphicsLayer {
+                            alpha = charIn.value
+                            translationX = 40.dp.toPx() * (1f - charIn.value)
+                        }
+                ) {
+                    Art(R.drawable.mirra_tv_character)
+                    Art(
+                        R.drawable.mirra_tv_smile,
+                        Modifier.matchParentSize().graphicsLayer {
+                            scaleX = smile.value
+                            scaleY = smile.value
+                            transformOrigin = TransformOrigin(0.595f, 0.563f)
+                        }
                     )
-                    Spacer(Modifier.height(40.dp))
-                    Hero(deviceName, status, network, anims, Modifier.fillMaxWidth(), onRetry, onShowScreen)
-                    Spacer(Modifier.height(40.dp))
-                    Steps(deviceName, Modifier.fillMaxWidth(), vertical = true)
-                    Spacer(Modifier.height(28.dp))
-                    SameWifiHint(Modifier.fillMaxWidth())
-                    Spacer(Modifier.height(16.dp))
-                    Pill(
-                        text = stringResource(R.string.home_cant_find, deviceName),
-                        icon = Icons.AutoMirrored.Rounded.HelpOutline,
-                        onClick = onOpenHelp
+                }
+
+                // copy, fades in after the cable connects
+                Box(Modifier.matchParentSize().graphicsLayer { alpha = content.value }) {
+                    StatusDot(dotColor, pulse = status == HomeStatus.READY && anims)
+                    Label(statusText(status), 806.124f, 205.441f, 640f, 58f, 45.909f, FontWeight.ExtraBold, 57.386f)
+
+                    if (deviceName == "Mirra") {
+                        Art(R.drawable.mirra_mirra_wordmark, Modifier.place(711.962f, 315.622f, 492.632f, 154.942f))
+                    } else {
+                        // custom receiver names can't use the outlined wordmark
+                        val size = when {
+                            deviceName.length <= 8 -> 150f
+                            deviceName.length <= 14 -> 104f
+                            else -> 76f
+                        }
+                        Label(
+                            deviceName, 360f, 315.622f, 1200f, 154.942f, size, FontWeight.Black, 154.942f,
+                            centered = true
+                        )
+                    }
+                    Label(
+                        stringResource(R.string.home_subtitle), 460f, 490.074f, 1000f, 52f, 36.727f,
+                        FontWeight.ExtraBold, 51.647f, centered = true
                     )
+                    if (status == HomeStatus.READY || status == HomeStatus.CONNECTING) {
+                        Art(R.drawable.mirra_wifi_lavender, Modifier.place(746.411f, 571.562f, 58.565f, 44.761f))
+                        Label(network.text, 825f, 572.710f, 520f, 44f, 32.136f, FontWeight.Bold, 43.613f)
+                    }
+
+                    Label(stringResource(R.string.home_on_iphone), 59.713f, 768.969f, 500f, 50f, 36.727f, FontWeight.ExtraBold, 49.352f)
+                    Step(1, 59.713f, R.drawable.mirra_control_center, 163.062f, 842.423f, 81.531f, 86.079f, 275.598f,
+                        stringResource(R.string.step_control_center), stringResource(R.string.step_control_center_desc))
+                    Divider(600.574f)
+                    Step(2, 664.880f, R.drawable.mirra_screen_mirroring, 763.636f, 848.735f, 82.679f, 73.454f, 873.876f,
+                        stringResource(R.string.step_screen_mirroring), stringResource(R.string.step_screen_mirroring_desc))
+                    Divider(1224.115f)
+                    Step(3, 1270.048f, R.drawable.mirra_receiver, 1364.211f, 845.866f, 81.531f, 79.192f, 1476.747f,
+                        deviceName, stringResource(R.string.step_select_desc))
+
+                    Art(R.drawable.mirra_wifi_cream, Modifier.place(58.565f, 975.558f, 58.565f, 41.318f))
+                    Label(stringResource(R.string.home_same_wifi), 136.651f, 975.558f, 900f, 42f, 26.397f,
+                        FontWeight.Normal, 41.318f, Mirra.CreamSecondary)
+                }
+
+                // actions stay visible during the intro so the remote always has a target
+                HomeAction(
+                    label = stringResource(R.string.tab_settings),
+                    icon = R.drawable.mirra_settings,
+                    onClick = onOpenSettings,
+                    modifier = Modifier.place(1658.182f, 40.170f, 219.330f, 65.420f).focusRequester(settingsFocus),
+                    iconStart = 31.004f, iconW = 41.340f, iconH = 42.465f, gap = 20.670f, textSize = 27f
+                )
+                HomeAction(
+                    label = stringResource(R.string.home_cant_find, deviceName),
+                    icon = R.drawable.mirra_help,
+                    onClick = onOpenHelp,
+                    modifier = Modifier.place(1600.766f, 965.229f, 281.340f, 65.420f),
+                    iconStart = 25.263f, iconW = 41.340f, iconH = 45.909f, gap = 17.224f, textSize = 22f
+                )
+                when (status) {
+                    HomeStatus.ERROR, HomeStatus.STOPPED -> CenterAction(stringResource(R.string.btn_try_again), onRetry)
+                    HomeStatus.MIRRORING -> CenterAction(stringResource(R.string.btn_show_screen), onShowScreen)
+                    else -> {}
                 }
             }
         }
@@ -220,188 +265,175 @@ fun MirraHome(
 }
 
 @Composable
-private fun Hero(
-    deviceName: String,
-    status: HomeStatus,
-    network: NetworkLabel,
-    anims: Boolean,
-    modifier: Modifier,
-    onRetry: () -> Unit,
-    onShowScreen: () -> Unit,
+private fun statusText(status: HomeStatus): String = stringResource(
+    when (status) {
+        HomeStatus.READY -> R.string.status_ready
+        HomeStatus.CONNECTING -> R.string.status_connecting
+        HomeStatus.MIRRORING -> R.string.status_mirroring
+        HomeStatus.ERROR -> R.string.status_error
+        HomeStatus.STOPPED -> R.string.status_stopped
+    }
+)
+
+private fun Modifier.place(x: Float, y: Float, w: Float, h: Float): Modifier =
+    offset(x.dp, y.dp).size(w.dp, h.dp)
+
+@Composable
+private fun BoxScope.Art(@DrawableRes res: Int, modifier: Modifier = Modifier.matchParentSize()) {
+    Image(painterResource(res), contentDescription = null, modifier = modifier, contentScale = ContentScale.FillBounds)
+}
+
+@Composable
+private fun Label(
+    text: String, x: Float, y: Float, w: Float, h: Float, size: Float, weight: FontWeight, line: Float,
+    color: Color = Mirra.Cream, centered: Boolean = false,
 ) {
-    Column(modifier = modifier, horizontalAlignment = Alignment.CenterHorizontally) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            val dotColor by animateColorAsState(
-                when (status) {
-                    HomeStatus.READY -> Mirra.Lavender
-                    HomeStatus.CONNECTING, HomeStatus.MIRRORING -> Mirra.Orange
-                    HomeStatus.ERROR, HomeStatus.STOPPED -> Mirra.Muted
-                }, label = "dot"
-            )
-            StatusDot(dotColor, pulse = status == HomeStatus.READY && anims)
-            Spacer(Modifier.width(14.dp))
-            Text(
-                text = stringResource(
-                    when (status) {
-                        HomeStatus.READY -> R.string.status_ready
-                        HomeStatus.CONNECTING -> R.string.status_connecting
-                        HomeStatus.MIRRORING -> R.string.status_mirroring
-                        HomeStatus.ERROR -> R.string.status_error
-                        HomeStatus.STOPPED -> R.string.status_stopped
-                    }
-                ),
-                fontFamily = Nunito, fontWeight = FontWeight.Bold, fontSize = 23.sp, color = Mirra.Cream
-            )
-        }
-        // shrink long names so they stay on one line
-        val titleSize = when {
-            deviceName.length <= 8 -> 96.sp
-            deviceName.length <= 14 -> 70.sp
-            else -> 52.sp
-        }
-        Text(
-            text = deviceName,
-            fontFamily = Nunito,
-            fontWeight = FontWeight.Black,
-            fontSize = titleSize,
-            lineHeight = titleSize * 1.08f,
-            color = Mirra.Cream,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            textAlign = TextAlign.Center,
-        )
-        Text(
-            text = stringResource(R.string.home_subtitle),
-            fontFamily = Nunito, fontWeight = FontWeight.Bold, fontSize = 19.sp, color = Mirra.Cream,
-            textAlign = TextAlign.Center,
-        )
-        Spacer(Modifier.height(16.dp))
-        when (status) {
-            HomeStatus.ERROR, HomeStatus.STOPPED -> Pill(
-                text = stringResource(R.string.btn_try_again),
-                icon = Icons.Rounded.Refresh,
-                onClick = onRetry
-            )
-            HomeStatus.MIRRORING -> Pill(
-                text = stringResource(R.string.btn_show_screen),
-                icon = Icons.Rounded.Cast,
-                onClick = onShowScreen
-            )
-            else -> NetworkRow(network)
-        }
-    }
+    BasicText(
+        text = text,
+        modifier = Modifier.place(x, y, w, h),
+        maxLines = 1, softWrap = false, overflow = TextOverflow.Ellipsis,
+        style = homeText(size, weight, line, color, centered)
+    )
+}
+
+private fun homeText(size: Float, weight: FontWeight, line: Float, color: Color, centered: Boolean = false) = TextStyle(
+    fontFamily = Nunito, fontWeight = weight, fontSize = size.sp, lineHeight = line.sp, color = color,
+    textAlign = if (centered) TextAlign.Center else TextAlign.Left,
+    platformStyle = PlatformTextStyle(includeFontPadding = false),
+    lineHeightStyle = LineHeightStyle(LineHeightStyle.Alignment.Center, LineHeightStyle.Trim.None)
+)
+
+@Composable
+private fun BoxScope.Step(
+    number: Int, badgeX: Float, @DrawableRes icon: Int, iconX: Float, iconY: Float, iconW: Float, iconH: Float,
+    textX: Float, title: String, desc: String,
+) {
+    Box(Modifier.place(badgeX, 853.900f, 63.158f, 63.124f).background(Mirra.Orange, CircleShape))
+    Label("$number", badgeX + 9.187f, 853.900f, 44.785f, 63.124f, 32.136f, FontWeight.ExtraBold, 63.124f, Mirra.Background, centered = true)
+    Art(icon, Modifier.place(iconX, iconY, iconW, iconH))
+    Label(title, textX, 847.014f, 300f, 40f, 28.693f, FontWeight.ExtraBold, 39.022f)
+    Label(desc, textX, 887.014f, 320f, 38f, 27.545f, FontWeight.Normal, 37.875f, Mirra.CreamSecondary)
 }
 
 @Composable
-private fun NetworkRow(network: NetworkLabel) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Icon(network.icon, contentDescription = null, tint = Mirra.Lavender, modifier = Modifier.size(24.dp))
-        Spacer(Modifier.width(10.dp))
-        Text(network.text, fontFamily = Nunito, fontWeight = FontWeight.SemiBold, fontSize = 16.sp, color = Mirra.Cream)
-    }
+private fun Divider(x: Float) {
+    Box(Modifier.place(x, 842.423f, 1.2f, 87.226f).background(Mirra.Border))
 }
 
 @Composable
-private fun StatusDot(color: Color, pulse: Boolean) {
+private fun BoxScope.StatusDot(color: Color, pulse: Boolean) {
     // the ring animates around a solid dot so the label never flickers
     val ring = if (pulse) {
         rememberInfiniteTransition(label = "pulse").animateFloat(
             initialValue = 0f, targetValue = 1f,
-            animationSpec = infiniteRepeatable(tween(1600, easing = LinearOutSlowInEasing), RepeatMode.Restart),
+            animationSpec = infiniteRepeatable(tween(1600, easing = LinearOutSlowInEasing)),
             label = "ring"
         )
     } else null
-    Canvas(Modifier.size(18.dp)) {
-        val r = size.minDimension / 2
-        ring?.value?.let { p -> drawCircle(color.copy(alpha = 0.55f * (1f - p)), radius = r * (1f + 1.5f * p)) }
-        drawCircle(color, radius = r)
-    }
-}
-
-@Composable
-private fun Steps(deviceName: String, modifier: Modifier, vertical: Boolean = false) {
-    val steps = listOf(
-        Triple(stringResource(R.string.step_control_center), stringResource(R.string.step_control_center_desc), StepIcon.CONTROL_CENTER),
-        Triple(stringResource(R.string.step_screen_mirroring), stringResource(R.string.step_screen_mirroring_desc), StepIcon.MIRRORING),
-        Triple(deviceName, stringResource(R.string.step_select_desc), StepIcon.AIRPLAY),
-    )
-    Column(modifier) {
-        Text(
-            stringResource(R.string.home_on_iphone),
-            fontFamily = Nunito, fontWeight = FontWeight.ExtraBold, fontSize = 19.sp, color = Mirra.Cream
-        )
-        Spacer(Modifier.height(16.dp))
-        if (vertical) {
-            steps.forEachIndexed { i, (title, desc, icon) ->
-                if (i > 0) Spacer(Modifier.height(16.dp))
-                Step(i + 1, title, desc, icon, Modifier.fillMaxWidth())
-            }
-        } else {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                steps.forEachIndexed { i, (title, desc, icon) ->
-                    if (i > 0) {
-                        Box(
-                            Modifier
-                                .padding(horizontal = 18.dp)
-                                .width(1.dp)
-                                .height(44.dp)
-                                .background(Mirra.Cream.copy(alpha = 0.18f))
-                        )
-                    }
-                    Step(i + 1, title, desc, icon, Modifier.weight(1f))
-                }
+    Box(Modifier.place(737.225f, 208.884f, 44.785f, 48.204f)) {
+        Canvas(Modifier.matchParentSize()) {
+            ring?.value?.let { p ->
+                drawCircle(color.copy(alpha = 0.5f * (1f - p)), radius = size.minDimension / 2.3f * (1f + 1.4f * p))
             }
         }
-    }
-}
-
-@Composable
-private fun Step(number: Int, title: String, desc: String, icon: StepIcon, modifier: Modifier) {
-    Row(modifier, verticalAlignment = Alignment.CenterVertically) {
-        Box(
-            Modifier.size(32.dp).background(Mirra.Orange, CircleShape),
-            contentAlignment = Alignment.Center
-        ) {
-            Text("$number", fontFamily = Nunito, fontWeight = FontWeight.Black, fontSize = 16.sp, color = Mirra.Background)
-        }
-        Spacer(Modifier.width(16.dp))
-        StepGlyph(icon, Modifier.size(40.dp))
-        Spacer(Modifier.width(14.dp))
-        Column {
-            Text(
-                title, fontFamily = Nunito, fontWeight = FontWeight.ExtraBold, fontSize = 15.sp,
-                color = Mirra.Cream, maxLines = 1, overflow = TextOverflow.Ellipsis
-            )
-            Text(
-                desc, fontFamily = Nunito, fontWeight = FontWeight.SemiBold, fontSize = 14.sp,
-                color = Mirra.CreamSecondary, maxLines = 1, overflow = TextOverflow.Ellipsis
-            )
-        }
-    }
-}
-
-@Composable
-private fun SameWifiHint(modifier: Modifier) {
-    Row(modifier, verticalAlignment = Alignment.CenterVertically) {
-        Icon(Icons.Rounded.Wifi, contentDescription = null, tint = Mirra.Cream, modifier = Modifier.size(24.dp))
-        Spacer(Modifier.width(14.dp))
-        Text(
-            stringResource(R.string.home_same_wifi),
-            fontFamily = Nunito, fontWeight = FontWeight.SemiBold, fontSize = 14.sp, color = Mirra.CreamSecondary
+        Image(
+            painterResource(R.drawable.mirra_status_dot), contentDescription = null,
+            modifier = Modifier.matchParentSize(), contentScale = ContentScale.FillBounds,
+            colorFilter = ColorFilter.tint(color)
         )
     }
 }
 
-// --- focus & pills ---
+@Composable
+private fun Cable(progress: () -> Float, connecting: Boolean, modifier: Modifier) {
+    val path = remember { PathParser().parsePathString(CABLE_PATH).toPath() }
+    val measure = remember { PathMeasure().apply { setPath(path, false) } }
+    val partial = remember { Path() }
+    val travel = if (connecting) {
+        rememberInfiniteTransition(label = "travel").animateFloat(
+            initialValue = 0f, targetValue = 1f,
+            animationSpec = infiniteRepeatable(tween(1600, easing = LinearEasing)),
+            label = "dot"
+        )
+    } else null
+    Canvas(modifier) {
+        scale(size.width / CABLE_VIEW_W, size.height / CABLE_VIEW_H, pivot = Offset.Zero) {
+            val t = progress()
+            val stroke = Stroke(width = 9f, cap = StrokeCap.Round, join = StrokeJoin.Round)
+            if (t >= 1f) {
+                drawPath(path, Mirra.Orange, style = stroke)
+            } else if (t > 0f) {
+                partial.reset()
+                measure.getSegment(0f, measure.length * t, partial, true)
+                drawPath(partial, Mirra.Orange, style = stroke)
+            }
+            travel?.value?.let { d ->
+                val p = measure.getPosition(measure.length * d)
+                drawCircle(
+                    Brush.radialGradient(listOf(Mirra.Orange.copy(alpha = 0.75f), Color.Transparent), center = p, radius = 30f),
+                    radius = 30f, center = p
+                )
+                drawCircle(Mirra.Cream, radius = 9f, center = p)
+            }
+        }
+    }
+}
 
 @Composable
-fun Modifier.mirraFocus(shape: Shape = CircleShape): Modifier {
+private fun HomeAction(
+    label: String, @DrawableRes icon: Int, onClick: () -> Unit, modifier: Modifier,
+    iconStart: Float, iconW: Float, iconH: Float, gap: Float, textSize: Float,
+) {
+    val shape = RoundedCornerShape(50)
+    Row(
+        modifier = modifier
+            .mirraFocus(shape)
+            .background(Mirra.Surface, shape)
+            .border(1.2.dp, Mirra.Border, shape)
+            .semantics { contentDescription = label }
+            .clickable(role = Role.Button, onClick = onClick)
+            .padding(start = iconStart.dp, end = 20.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Image(painterResource(icon), contentDescription = null, modifier = Modifier.size(iconW.dp, iconH.dp))
+        Spacer(Modifier.width(gap.dp))
+        BasicText(
+            label, maxLines = 1, softWrap = false, overflow = TextOverflow.Ellipsis,
+            style = homeText(textSize, FontWeight.ExtraBold, textSize * 1.5f, Mirra.Cream)
+        )
+    }
+}
+
+@Composable
+private fun BoxScope.CenterAction(label: String, onClick: () -> Unit) {
+    val shape = RoundedCornerShape(50)
+    Box(
+        Modifier
+            .align(Alignment.TopCenter)
+            .offset(y = 561.4.dp)
+            .height(65.42.dp)
+            .mirraFocus(shape)
+            .background(Mirra.Surface, shape)
+            .border(1.2.dp, Mirra.Border, shape)
+            .semantics { contentDescription = label }
+            .clickable(role = Role.Button, onClick = onClick)
+            .padding(horizontal = 40.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        BasicText(label, maxLines = 1, style = homeText(27f, FontWeight.ExtraBold, 41f, Mirra.Cream))
+    }
+}
+
+// --- shared mirra controls ---
+
+@Composable
+fun Modifier.mirraFocus(shape: Shape = CircleShape, width: Dp = 3.dp): Modifier {
     var focused by remember { mutableStateOf(false) }
-    val scale by animateFloatAsState(if (focused) 1.06f else 1f, label = "focusScale")
+    val scale by animateFloatAsState(if (focused) 1.05f else 1f, label = "focusScale")
     return this
         .onFocusChanged { focused = it.isFocused }
         .graphicsLayer { scaleX = scale; scaleY = scale }
-        .border(2.5.dp, if (focused) Mirra.Cream else Color.Transparent, shape)
+        .border(width, if (focused) Mirra.Lavender else Color.Transparent, shape)
 }
 
 @Composable
@@ -409,10 +441,10 @@ fun Pill(text: String, icon: ImageVector?, onClick: () -> Unit, modifier: Modifi
     val shape = RoundedCornerShape(50)
     Row(
         modifier = modifier
-            .mirraFocus(shape)
+            .mirraFocus(shape, 2.5.dp)
             .clip(shape)
             .background(Mirra.Surface)
-            .border(1.dp, Mirra.Cream.copy(alpha = 0.1f), shape)
+            .border(1.dp, Mirra.Border, shape)
             .clickable(onClick = onClick)
             .padding(horizontal = 20.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically
@@ -421,7 +453,7 @@ fun Pill(text: String, icon: ImageVector?, onClick: () -> Unit, modifier: Modifi
             Icon(icon, contentDescription = null, tint = Mirra.Cream, modifier = Modifier.size(22.dp))
             Spacer(Modifier.width(10.dp))
         }
-        Text(text, fontFamily = Nunito, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = Mirra.Cream)
+        Text(text, fontFamily = Nunito, fontWeight = FontWeight.ExtraBold, fontSize = 16.sp, color = Mirra.Cream)
     }
 }
 
@@ -430,170 +462,6 @@ fun animationsEnabled(): Boolean {
     val ctx = LocalContext.current
     return remember(ctx) {
         Settings.Global.getFloat(ctx.contentResolver, Settings.Global.ANIMATOR_DURATION_SCALE, 1f) > 0f
-    }
-}
-
-// --- characters & cable, drawn in 960x540 design units ---
-
-private fun Path.quadTo(x0: Float, y0: Float, cx: Float, cy: Float, x: Float, y: Float) =
-    cubicTo(x0 + 2f / 3f * (cx - x0), y0 + 2f / 3f * (cy - y0), x + 2f / 3f * (cx - x), y + 2f / 3f * (cy - y), x, y)
-
-private fun arcPath(x0: Float, y0: Float, cx: Float, cy: Float, x: Float, y: Float) =
-    Path().apply { moveTo(x0, y0); quadTo(x0, y0, cx, cy, x, y) }
-
-private fun cablePath() = Path().apply {
-    moveTo(163f, 262f)
-    cubicTo(200f, 280f, 228f, 284f, 241f, 268f)
-    cubicTo(254f, 252f, 262f, 236f, 248f, 235f)
-    cubicTo(232f, 234f, 226f, 256f, 236f, 274f)
-    cubicTo(256f, 310f, 310f, 352f, 410f, 360f)
-    cubicTo(520f, 370f, 630f, 360f, 676f, 332f)
-    cubicTo(694f, 320f, 702f, 304f, 689f, 302f)
-    cubicTo(675f, 300f, 668f, 318f, 682f, 327f)
-    cubicTo(706f, 340f, 730f, 312f, 752f, 290f)
-}
-
-@Composable
-private fun Characters(
-    charIn: Float,
-    cable: Float,
-    smileScale: () -> Float,
-    excitedAlpha: () -> Float,
-    connecting: Boolean,
-    modifier: Modifier,
-) {
-    val path = remember { cablePath() }
-    val measure = remember { PathMeasure().apply { setPath(path, false) } }
-    val partial = remember { Path() }
-    val travel = if (connecting) {
-        rememberInfiniteTransition(label = "travel").animateFloat(
-            initialValue = 0f, targetValue = 1f,
-            animationSpec = infiniteRepeatable(tween(1400, easing = LinearEasing)),
-            label = "dot"
-        )
-    } else null
-
-    Canvas(modifier) {
-        val u = size.width / DESIGN_W
-        scale(u, u, pivot = Offset.Zero) {
-            val slide = 28f * (1f - charIn)
-
-            // cable first, so the characters' fills cover its ends
-            if (cable > 0f) {
-                val stroke = Stroke(width = 5f, cap = StrokeCap.Round, join = StrokeJoin.Round)
-                if (cable >= 1f) {
-                    drawPath(path, Mirra.Orange, style = stroke)
-                } else {
-                    partial.reset()
-                    measure.getSegment(0f, measure.length * cable, partial, true)
-                    drawPath(partial, Mirra.Orange, style = stroke)
-                }
-            }
-            travel?.value?.let { t ->
-                val p = measure.getPosition(measure.length * t)
-                drawCircle(
-                    Brush.radialGradient(listOf(Mirra.Orange.copy(alpha = 0.7f), Color.Transparent), center = p, radius = 18f),
-                    radius = 18f, center = p
-                )
-                drawCircle(Mirra.Cream, radius = 5f, center = p)
-            }
-
-            translate(left = -slide) { drawPhone(charIn, excitedAlpha()) }
-            translate(left = slide) { drawTv(charIn, smileScale()) }
-        }
-    }
-}
-
-private fun DrawScope.drawPhone(alpha: Float, excited: Float) {
-    val cream = Mirra.Cream.copy(alpha = alpha)
-    val lav = Mirra.Lavender.copy(alpha = alpha * excited)
-    drawLine(lav, Offset(84f, 119f), Offset(104f, 137f), 6f, StrokeCap.Round)
-    drawLine(lav, Offset(108f, 107f), Offset(116f, 129f), 6f, StrokeCap.Round)
-    rotate(9f, pivot = Offset(120f, 232f)) {
-        translate(120f, 232f) {
-            val topLeft = Offset(-44f, -80f)
-            val body = Size(88f, 160f)
-            drawRoundRect(Mirra.Background.copy(alpha = alpha), topLeft, body, CornerRadius(18f))
-            drawRoundRect(cream, topLeft, body, CornerRadius(18f), style = Stroke(6f))
-            drawLine(cream, Offset(-9f, -65f), Offset(9f, -65f), 5f, StrokeCap.Round)
-            drawLine(cream, Offset(-50f, -46f), Offset(-50f, -32f), 4f, StrokeCap.Round)
-            val eye = Stroke(4.5f, cap = StrokeCap.Round)
-            drawPath(arcPath(-23f, -16f, -15f, -4f, -7f, -16f), cream, style = eye)
-            drawPath(arcPath(5f, -18f, 13f, -6f, 21f, -18f), cream, style = eye)
-            drawPath(
-                arcPath(-26f, 10f, -2f, 30f, 24f, 4f),
-                Mirra.Orange.copy(alpha = alpha), style = Stroke(11f, cap = StrokeCap.Round)
-            )
-        }
-    }
-}
-
-private fun DrawScope.drawTv(alpha: Float, smileScale: Float) {
-    val cream = Mirra.Cream.copy(alpha = alpha)
-    rotate(-13f, pivot = Offset(885f, 212f)) {
-        translate(885f, 212f) {
-            val topLeft = Offset(-145f, -118f)
-            val body = Size(290f, 236f)
-            drawPath(
-                Path().apply { moveTo(-100f, 118f); lineTo(-112f, 142f); lineTo(210f, 142f) },
-                cream, style = Stroke(6f, cap = StrokeCap.Round, join = StrokeJoin.Round)
-            )
-            drawRoundRect(Mirra.Background.copy(alpha = alpha), topLeft, body, CornerRadius(30f))
-            drawRoundRect(cream, topLeft, body, CornerRadius(30f), style = Stroke(7f))
-            val eye = Stroke(13f, cap = StrokeCap.Round)
-            drawPath(arcPath(-84f, -44f, -62f, -14f, -40f, -44f), cream, style = eye)
-            drawPath(arcPath(-8f, -46f, 14f, -16f, 36f, -46f), cream, style = eye)
-            scale(smileScale, pivot = Offset(-14f, 40f)) {
-                drawPath(
-                    arcPath(-104f, 24f, -30f, 78f, 80f, -2f),
-                    Mirra.Orange.copy(alpha = alpha), style = Stroke(30f, cap = StrokeCap.Round)
-                )
-            }
-        }
-    }
-}
-
-private enum class StepIcon { CONTROL_CENTER, MIRRORING, AIRPLAY }
-
-@Composable
-private fun StepGlyph(icon: StepIcon, modifier: Modifier) {
-    Canvas(modifier) {
-        val u = size.width / 40f
-        scale(u, u, pivot = Offset.Zero) {
-            val line = Stroke(2.8f, cap = StrokeCap.Round, join = StrokeJoin.Round)
-            when (icon) {
-                StepIcon.CONTROL_CENTER -> {
-                    drawRoundRect(Mirra.Cream, Offset(3f, 3f), Size(34f, 34f), CornerRadius(9f), style = line)
-                    drawCircle(Mirra.Cream, radius = 5f, center = Offset(15f, 14f))
-                    drawRoundRect(Mirra.Cream.copy(alpha = 0.45f), Offset(9f, 22f), Size(22f, 9f), CornerRadius(4.5f))
-                }
-                StepIcon.MIRRORING -> {
-                    drawRoundRect(Mirra.Cream, Offset(3f, 5f), Size(22f, 19f), CornerRadius(5f), style = line)
-                    drawRoundRect(Mirra.Background, Offset(13f, 14f), Size(24f, 21f), CornerRadius(5f))
-                    drawRoundRect(Mirra.Cream, Offset(13f, 14f), Size(24f, 21f), CornerRadius(5f), style = line)
-                }
-                StepIcon.AIRPLAY -> {
-                    drawPath(
-                        Path().apply {
-                            moveTo(14f, 29f); lineTo(8f, 29f)
-                            cubicTo(5f, 29f, 3f, 27f, 3f, 24f); lineTo(3f, 9f)
-                            cubicTo(3f, 6f, 5f, 4f, 8f, 4f); lineTo(32f, 4f)
-                            cubicTo(35f, 4f, 37f, 6f, 37f, 9f); lineTo(37f, 24f)
-                            cubicTo(37f, 27f, 35f, 29f, 32f, 29f); lineTo(26f, 29f)
-                        },
-                        Mirra.Cream, style = line
-                    )
-                    drawPath(
-                        Path().apply { moveTo(20f, 22f); lineTo(29f, 35f); lineTo(11f, 35f); close() },
-                        Mirra.Cream, style = Stroke(2f, join = StrokeJoin.Round)
-                    )
-                    drawPath(
-                        Path().apply { moveTo(20f, 22f); lineTo(29f, 35f); lineTo(11f, 35f); close() },
-                        Mirra.Cream
-                    )
-                }
-            }
-        }
     }
 }
 

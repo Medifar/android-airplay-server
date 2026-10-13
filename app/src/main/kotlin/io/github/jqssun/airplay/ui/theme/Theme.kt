@@ -10,15 +10,17 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import io.github.jqssun.airplay.R
 
-// mirra design tokens
+// mirra design tokens (figma handoff palette)
 object Mirra {
-    val Background = Color(0xFF1F1E24)
-    val Surface = Color(0xFF24242D)
-    val SurfaceHigh = Color(0xFF2E2E39)
-    val Cream = Color(0xFFFDF3E6)
-    val CreamSecondary = Cream.copy(alpha = 0.6f)
-    val Orange = Color(0xFFF5B77A)
-    val Lavender = Color(0xFFC39EEE)
+    val Background = Color(0xFF242229)
+    val Surface = Color(0xFF2B2933)
+    val SurfaceHigh = Color(0xFF34313D)
+    val Border = Color(0xFF4C4857)
+    val Cream = Color(0xFFF6F0E5)
+    val CreamSecondary = Color(0xFFC8C5CD)
+    val Orange = Color(0xFFF2BD86)
+    val Lavender = Color(0xFFBFA0E4)
+    val Gray = Color(0xFF85858A)
     val Muted = Cream.copy(alpha = 0.3f)
 }
 
@@ -51,7 +53,7 @@ private val colors = darkColorScheme(
     surfaceContainer = Mirra.Surface,
     surfaceContainerHigh = Mirra.SurfaceHigh,
     surfaceContainerHighest = Mirra.SurfaceHigh,
-    outline = Mirra.Muted,
+    outline = Mirra.Border,
     outlineVariant = Mirra.Cream.copy(alpha = 0.12f),
 )
 
