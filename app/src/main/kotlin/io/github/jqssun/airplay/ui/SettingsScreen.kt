@@ -5,12 +5,15 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -34,7 +37,7 @@ import androidx.compose.ui.res.stringResource
 import kotlin.math.roundToInt
 
 @Composable
-fun SettingsScreen(viewModel: MainViewModel) {
+fun SettingsScreen(viewModel: MainViewModel, onOpenLogs: () -> Unit = {}) {
     val serverName by viewModel.serverName.collectAsState()
     val h265Enabled by viewModel.h265Enabled.collectAsState()
     val enforceSdr by viewModel.enforceSdr.collectAsState()
@@ -399,6 +402,17 @@ fun SettingsScreen(viewModel: MainViewModel) {
                 onCheckedChange = { viewModel.setBenchmarkLog(it) }
             )
         }
+
+        SectionHeader(stringResource(R.string.section_advanced))
+
+        ListItem(
+            modifier = Modifier
+                .dpadFocus(RectangleShape)
+                .clickable(onClick = onOpenLogs),
+            headlineContent = { Text(stringResource(R.string.tab_logs)) },
+            supportingContent = { Text(stringResource(R.string.setting_logs_desc)) },
+            trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null) }
+        )
     }
 }
 

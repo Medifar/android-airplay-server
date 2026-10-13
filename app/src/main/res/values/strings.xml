@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">AirPlay Server</string>
+    <string name="app_name">Mirra</string>
 
     <!-- Notification -->
     <string name="notification_channel">AirPlay Service</string>
-    <string name="notification_title">AirPlay Server Running</string>
+    <string name="notification_title">Mirra is running</string>
     <string name="notification_text">Accepting AirPlay connections</string>
     <string name="notification_pin_title">AirPlay PIN Required</string>
     <string name="notification_pin_text">PIN: %1$s</string>
@@ -186,4 +186,35 @@
     <string name="debug_audio_glitch">Glitch: trim=%1$d drop=%2$d sil=%3$d ur=%4$d xrun=%5$d</string>
     <string name="debug_audio_decode">Decode: %1$s</string>
     <string name="debug_clients">Clients: %1$d</string>
+
+    <!-- mirra home -->
+    <string name="status_ready">Ready to connect</string>
+    <string name="status_connecting">Connecting…</string>
+    <string name="status_mirroring">Mirroring</string>
+    <string name="status_error">Couldn\'t start</string>
+    <string name="status_stopped">Not running</string>
+    <string name="home_subtitle">Select this name in Screen Mirroring.</string>
+    <string name="home_on_iphone">On your iPhone</string>
+    <string name="step_control_center">Control Center</string>
+    <string name="step_control_center_desc">Open on your iPhone</string>
+    <string name="step_screen_mirroring">Screen Mirroring</string>
+    <string name="step_screen_mirroring_desc">Tap the two-screen icon</string>
+    <string name="step_select_desc">Select from the list</string>
+    <string name="home_same_wifi">Use the same Wi-Fi as this TV</string>
+    <string name="home_cant_find">Can\'t find %1$s?</string>
+    <string name="btn_try_again">Try again</string>
+    <string name="btn_show_screen">Show screen</string>
+    <string name="btn_back">Back</string>
+    <string name="net_wifi">Wi-Fi</string>
+    <string name="net_ethernet">Ethernet</string>
+    <string name="net_none">No network</string>
+    <string name="section_advanced">Advanced</string>
+    <string name="setting_logs_desc">View, export and clear server logs</string>
+    <string name="help_tip_same_wifi">Connect your iPhone and this TV to the same Wi-Fi network. Guest networks usually don\'t work.</string>
+    <string name="help_tip_keep_open">Keep %1$s open on the TV until it says “Ready to connect”.</string>
+    <string name="help_tip_toggle_wifi">On your iPhone, turn Wi-Fi off and on again, then reopen Screen Mirroring.</string>
+    <string name="help_tip_vpn">Turn off any VPN on your iPhone.</string>
+    <string name="help_tip_builtin_cast">If the TV has its own cast or AirPlay feature, turn it off. It can block this app.</string>
+    <string name="help_tip_isolation">Some routers stop devices from seeing each other (often called AP or client isolation). Turn that off in your router settings.</string>
+    <string name="help_this_tv">This TV: %1$s</string>
 </resources>

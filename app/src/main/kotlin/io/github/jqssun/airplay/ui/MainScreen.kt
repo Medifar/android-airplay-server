@@ -24,6 +24,7 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.rounded.BrightnessHigh
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -65,8 +66,6 @@ import io.github.jqssun.airplay.viewmodel.MainViewModel
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.media3.common.util.UnstableApi
-import androidx.media3.datasource.DataSourceBitmapLoader
-import androidx.media3.ui.compose.material3.MiniController
 import androidx.media3.ui.compose.material3.buttons.NextButton
 import androidx.media3.ui.compose.material3.buttons.PlayPauseButton
 import androidx.media3.ui.compose.material3.buttons.PreviousButton
@@ -76,11 +75,7 @@ import androidx.media3.ui.compose.material3.indicator.ProgressSlider
 import kotlin.math.abs
 import kotlinx.coroutines.delay
 
-private enum class Tab(val labelRes: Int, val icon: ImageVector) {
-    OVERVIEW(R.string.tab_overview, Icons.Default.Cast),
-    LOGS(R.string.tab_logs, Icons.AutoMirrored.Filled.Article),
-    SETTINGS(R.string.tab_settings, Icons.Default.Settings)
-}
+private enum class Page { HOME, SETTINGS, LOGS, HELP }
 
 @Composable
 fun MainScreen(
@@ -90,7 +85,8 @@ fun MainScreen(
     onSurfaceDestroyed: (android.view.Surface) -> Unit,
     onPip: () -> Unit = {}
 ) {
-    var tab by remember { mutableStateOf(Tab.OVERVIEW) }
+    var page by rememberSaveable { mutableStateOf(Page.HOME) }
+    var introPlayed by rememberSaveable { mutableStateOf(false) }
     var fullscreen by remember { mutableStateOf(false) }
     val pin by viewModel.pinCode.collectAsState()
     val connections by viewModel.connectionCount.collectAsState()
@@ -510,33 +506,31 @@ fun MainScreen(
             onPip = onPip
         )
     } else {
-        Scaffold(
-            bottomBar = {
-                Column {
-                    AudioMiniController(
-                        viewModel,
-                        visible = audioOnly && connections > 0 && tab != Tab.OVERVIEW,
-                        onClick = { tab = Tab.OVERVIEW }
-                    )
-                    NavigationBar {
-                        Tab.entries.forEach { t ->
-                            NavigationBarItem(
-                                selected = tab == t,
-                                onClick = { tab = t },
-                                icon = { Icon(t.icon, null) },
-                                label = { Text(stringResource(t.labelRes)) },
-                                modifier = Modifier.dpadFocus()
-                            )
-                        }
-                    }
+        when (page) {
+            Page.HOME -> HomeContent(
+                viewModel,
+                playIntro = !introPlayed,
+                onIntroDone = { introPlayed = true },
+                onOpenSettings = { page = Page.SETTINGS },
+                onOpenHelp = { page = Page.HELP },
+                onShowScreen = { fullscreen = true }
+            )
+            Page.SETTINGS -> {
+                BackHandler { page = Page.HOME }
+                val back = remember { FocusRequester() }
+                LaunchedEffect(Unit) { back.requestFocusUntilLanded() }
+                MirraPage(stringResource(R.string.tab_settings), onBack = { page = Page.HOME }, backFocus = back) {
+                    SettingsScreen(viewModel, onOpenLogs = { page = Page.LOGS })
                 }
             }
-        ) { padding ->
-            Box(modifier = Modifier.padding(padding)) {
-                TabContent(
-                    tab, viewModel, video,
-                    onFullscreen = { fullscreen = true }, onPip = onPip, showAudioMode = audioOnly
-                )
+            Page.LOGS -> {
+                BackHandler { page = Page.SETTINGS }
+                LogsScreen(viewModel, onBack = { page = Page.SETTINGS })
+            }
+            Page.HELP -> {
+                BackHandler { page = Page.HOME }
+                val serverName by viewModel.serverName.collectAsState()
+                HelpScreen(serverName, onBack = { page = Page.HOME })
             }
         }
     }
@@ -563,191 +557,50 @@ fun MainScreen(
 }
 
 @Composable
-private fun TabContent(
-    tab: Tab,
+private fun HomeContent(
     viewModel: MainViewModel,
-    video: @Composable () -> Unit,
-    onFullscreen: () -> Unit,
-    onPip: () -> Unit,
-    showAudioMode: Boolean
-) {
-    when (tab) {
-        Tab.OVERVIEW -> OverviewContent(
-            viewModel, video,
-            onFullscreen = onFullscreen, onPip = onPip, showAudioMode = showAudioMode
-        )
-        Tab.LOGS -> LogsScreen(viewModel)
-        Tab.SETTINGS -> SettingsScreen(viewModel)
-    }
-}
-
-@Composable
-private fun OverviewContent(
-    viewModel: MainViewModel,
-    video: @Composable () -> Unit,
-    onFullscreen: () -> Unit,
-    onPip: () -> Unit,
-    showAudioMode: Boolean = false
+    playIntro: Boolean,
+    onIntroDone: () -> Unit,
+    onOpenSettings: () -> Unit,
+    onOpenHelp: () -> Unit,
+    onShowScreen: () -> Unit,
 ) {
     val state by viewModel.serverState.collectAsState()
     val connections by viewModel.connectionCount.collectAsState()
     val serverName by viewModel.serverName.collectAsState()
-    val videoResolution by viewModel.videoResolution.collectAsState()
-    val idlePreview by viewModel.idlePreview.collectAsState()
     val mirroringActive by viewModel.mirroringActive.collectAsState()
-    val videoPlaybackActive by viewModel.videoPlaybackActive.collectAsState()
-    val debugEnabled by viewModel.debugEnabled.collectAsState()
-    val debugInfo by viewModel.debugInfo.collectAsState()
-    val tv = isTv()
-    val startFocus = remember { FocusRequester() }
-    LaunchedEffect(Unit) {
-        if (tv) startFocus.requestFocus()
+    val audioOnly by viewModel.audioOnly.collectAsState()
+
+    if (audioOnly && state == ServerState.RUNNING && connections > 0) {
+        Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).safeDrawingPadding()) {
+            NowPlayingContent(viewModel)
+            Pill(
+                text = stringResource(R.string.tab_settings),
+                icon = Icons.Default.Settings,
+                onClick = onOpenSettings,
+                modifier = Modifier.align(Alignment.TopEnd).padding(24.dp)
+            )
+        }
+        return
     }
 
-    Column(modifier = Modifier.fillMaxSize()) {
-        // content area
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f)
-                .padding(16.dp)
-                .clip(RoundedCornerShape(16.dp))
-                .background(MaterialTheme.colorScheme.surfaceVariant),
-            contentAlignment = Alignment.Center
-        ) {
-            val connecting = state == ServerState.RUNNING && connections > 0 &&
-                !mirroringActive && !videoPlaybackActive
-            if (showAudioMode && state == ServerState.RUNNING && connections > 0) {
-                NowPlayingContent(viewModel)
-            } else {
-                if (state == ServerState.RUNNING && (mirroringActive || idlePreview)) {
-                    video()
-                }
-                if (state != ServerState.RUNNING || connections == 0) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Icon(
-                            imageVector = if (connections > 0) Icons.Default.CastConnected else Icons.Default.Cast,
-                            contentDescription = null,
-                            modifier = Modifier.size(64.dp),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
-                        )
-                        Spacer(Modifier.height(12.dp))
-                        Text(
-                            text = when (state) {
-                                ServerState.STOPPED -> stringResource(R.string.server_stopped)
-                                ServerState.RUNNING -> stringResource(R.string.waiting_for_connection)
-                                ServerState.ERROR -> stringResource(R.string.error_starting_server)
-                            },
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
-                        )
-                    }
-                } else if (connecting) {
-                    Text(
-                        text = stringResource(R.string.waiting_for_playback),
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
-                    )
-                }
-                if (state == ServerState.RUNNING && mirroringActive) {
-                    Row(modifier = Modifier.align(Alignment.TopEnd).padding(4.dp)) {
-                        IconButton(onClick = onPip, modifier = Modifier.dpadFocus()) {
-                            Icon(
-                                painterResource(R.drawable.ic_pip), contentDescription = stringResource(R.string.cd_pip),
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
-                            )
-                        }
-                        IconButton(onClick = onFullscreen, modifier = Modifier.dpadFocus()) {
-                            Icon(
-                                Icons.Default.Fullscreen, contentDescription = stringResource(R.string.cd_fullscreen),
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
-                            )
-                        }
-                    }
-                }
-            }
-            if (debugEnabled && connections > 0) {
-                DebugOverlay(debugInfo, Modifier.align(Alignment.TopStart).padding(8.dp))
-            }
-            var showRes by remember { mutableStateOf(false) }
-            LaunchedEffect(videoResolution) {
-                if (videoResolution.isNotEmpty() && !showAudioMode) {
-                    showRes = true
-                    delay(5000)
-                    showRes = false
-                }
-            }
-            if (!showAudioMode) {
-                androidx.compose.animation.AnimatedVisibility(
-                    visible = showRes && connections > 0,
-                    modifier = Modifier.align(Alignment.BottomEnd).padding(8.dp)
-                ) {
-                    Text(
-                        text = videoResolution,
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
-                    )
-                }
-            }
-        }
-
-        // controls
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            shape = RoundedCornerShape(16.dp)
-        ) {
-            Column(modifier = Modifier.padding(20.dp)) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column {
-                        Text(
-                            text = serverName,
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                        Spacer(Modifier.height(2.dp))
-                        val statusColor by animateColorAsState(
-                            when (state) {
-                                ServerState.RUNNING -> MaterialTheme.colorScheme.primary
-                                ServerState.ERROR -> MaterialTheme.colorScheme.error
-                                ServerState.STOPPED -> MaterialTheme.colorScheme.onSurfaceVariant
-                            }, label = "status"
-                        )
-                        Text(
-                            text = when (state) {
-                                ServerState.RUNNING -> stringResource(R.string.connected_count, connections)
-                                ServerState.ERROR -> stringResource(R.string.error_label)
-                                ServerState.STOPPED -> stringResource(R.string.stopped_label)
-                            },
-                            style = MaterialTheme.typography.bodySmall,
-                            color = statusColor
-                        )
-                    }
-
-                    FilledTonalButton(
-                        onClick = {
-                            if (state == ServerState.RUNNING) viewModel.stopServer()
-                            else viewModel.startServer()
-                        },
-                        modifier = Modifier.dpadFocus().focusRequester(startFocus)
-                    ) {
-                        Icon(
-                            imageVector = if (state == ServerState.RUNNING) Icons.Default.Stop else Icons.Default.PlayArrow,
-                            contentDescription = null,
-                            modifier = Modifier.size(20.dp)
-                        )
-                        Spacer(Modifier.width(6.dp))
-                        Text(if (state == ServerState.RUNNING) stringResource(R.string.btn_stop) else stringResource(R.string.btn_start))
-                    }
-                }
-            }
-        }
+    val status = when {
+        state == ServerState.ERROR -> HomeStatus.ERROR
+        state == ServerState.STOPPED -> HomeStatus.STOPPED
+        connections == 0 -> HomeStatus.READY
+        mirroringActive -> HomeStatus.MIRRORING
+        else -> HomeStatus.CONNECTING
     }
+    MirraHome(
+        deviceName = serverName,
+        status = status,
+        playIntro = playIntro,
+        onIntroDone = onIntroDone,
+        onOpenSettings = onOpenSettings,
+        onOpenHelp = onOpenHelp,
+        onRetry = { viewModel.startServer() },
+        onShowScreen = onShowScreen,
+    )
 }
 
 @Composable
@@ -847,19 +700,6 @@ private fun HoldScanButton(
     ) {
         Icon(icon, contentDescription)
     }
-}
-
-@Composable
-@AndroidxOptIn(UnstableApi::class)
-private fun AudioMiniController(viewModel: MainViewModel, visible: Boolean, onClick: () -> Unit) {
-    if (!visible) return
-    val player = viewModel.dacpPlayer ?: return
-    val context = LocalContext.current
-    MiniController(
-        player,
-        bitmapLoader = remember { DataSourceBitmapLoader(context) },
-        onClick = onClick
-    )
 }
 
 @Composable

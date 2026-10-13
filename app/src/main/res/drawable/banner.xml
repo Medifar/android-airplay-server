@@ -1,39 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="320dp"
     android:height="180dp"
     android:viewportWidth="320"
     android:viewportHeight="180">
-
-    <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M0,0h320v180H0z" />
-
-    <group
-        android:scaleX="0.1875"
-        android:scaleY="0.1875"
-        android:translateX="70">
-        <group
-            android:pivotX="480"
-            android:pivotY="480"
-            android:scaleX="0.5"
-            android:scaleY="0.5">
-            <group
-                android:translateX="16"
-                android:translateY="16">
-                <path
-                    android:fillColor="#C0C0C0"
-                    android:pathData="m240,840 l240,-240 l240,240L240,840ZM80,680v-480q0,-33 23.5,-56.5T160,120h640q33,0 56.5,23.5T880,200v480q0,33 -23.5,56.5T800,760H680v-80h120v-480H160v480h120v80H160q-33,0 -56.5,-23.5T80,680Zm400,-200Z" />
-            </group>
-            <group
-                android:translateX="12"
-                android:translateY="12">
-                <path
-                    android:fillColor="#9E9E9E"
-                    android:pathData="m240,840 l240,-240 l240,240L240,840ZM80,680v-480q0,-33 23.5,-56.5T160,120h640q33,0 56.5,23.5T880,200v480q0,33 -23.5,56.5T800,760H680v-80h120v-480H160v480h120v80H160q-33,0 -56.5,-23.5T80,680Zm400,-200Z" />
-            </group>
-            <path
-                android:fillColor="#424242"
-                android:pathData="m240,840 l240,-240 l240,240L240,840ZM80,680v-480q0,-33 23.5,-56.5T160,120h640q33,0 56.5,23.5T880,200v480q0,33 -23.5,56.5T800,760H680v-80h120v-480H160v480h120v80H160q-33,0 -56.5,-23.5T80,680Zm400,-200Z" />
-        </group>
+    <path android:fillColor="#FF1F1E24" android:pathData="M0,0h320v180H0z" />
+    <group android:scaleX="1.0" android:scaleY="1.0" android:translateX="24" android:translateY="48.5">
+        <!-- tv outline, open at the bottom for the airplay triangle -->
+        <path android:strokeColor="#FFFDF3E6" android:strokeWidth="6.5" android:strokeLineJoin="round"
+            android:pathData="M30.5,68.2 L13,68.2 A9.75,9.75 0 0 1 3.25,58.45 L3.25,13 A9.75,9.75 0 0 1 13,3.25 L87,3.25 A9.75,9.75 0 0 1 96.75,13 L96.75,58.45 A9.75,9.75 0 0 1 87,68.2 L69.5,68.2" />
+        <!-- closed eyes -->
+        <path android:strokeColor="#FFFDF3E6" android:strokeWidth="5" android:strokeLineCap="round"
+            android:pathData="M21.5,23 Q32,33 42.5,23 M57.5,23 Q68,33 78.5,23" />
+        <!-- smile -->
+        <path android:strokeColor="#FFF5B77A" android:strokeWidth="7" android:strokeLineCap="round"
+            android:pathData="M26,39 Q50,52 74,39" />
+        <!-- airplay triangle -->
+        <path android:fillColor="#FFFDF3E6" android:strokeColor="#FFFDF3E6" android:strokeWidth="3" android:strokeLineJoin="round"
+            android:pathData="M50,55.2 L72.7,81.2 L27.9,81.2 Z" />
+    </group>
+    <!-- "Mirra" wordmark, nunito black outlines -->
+    <group android:scaleX="0.62" android:scaleY="0.62" android:translateX="140" android:translateY="68">
+        <path android:fillColor="#FFFDF3E6" android:pathData="M14.9 71.4Q10.9 71.4 8.75 69.2Q6.6 67 6.6 63V7.5Q6.6 3.4 8.9 1.25Q11.2 -0.9 15.4 -0.9Q18.9 -0.9 20.95 0.45Q23 1.8 24.7 4.9L46.2 43.5H42.7L64.1 4.9Q65.9 1.8 67.95 0.45Q70 -0.9 73.5 -0.9Q77.5 -0.9 79.65 1.25Q81.8 3.4 81.8 7.5V63Q81.8 67 79.7 69.2Q77.6 71.4 73.5 71.4Q69.5 71.4 67.35 69.2Q65.2 67 65.2 63V28.6H67.3L51.2 56.6Q49.8 58.8 48.25 59.9Q46.7 61 44.1 61Q41.6 61 40 59.9Q38.4 58.8 37.1 56.6L20.9 28.5H23.2V63Q23.2 67 21.1 69.2Q19 71.4 14.9 71.4ZM102.4 71.4Q98.2 71.4 95.9 68.9Q93.6 66.4 93.6 61.7V30.1Q93.6 25.4 95.9 22.9Q98.2 20.4 102.4 20.4Q106.7 20.4 109.05 22.9Q111.4 25.4 111.4 30.1V61.7Q111.4 66.4 109.1 68.9Q106.8 71.4 102.4 71.4ZM102.4 13.3Q97.7 13.3 95.15 11.1Q92.6 8.9 92.6 4.7Q92.6 0.6 95.15 -1.6Q97.7 -3.8 102.4 -3.8Q107.3 -3.8 109.8 -1.6Q112.3 0.6 112.3 4.7Q112.3 8.9 109.8 11.1Q107.3 13.3 102.4 13.3ZM130.8 71.4Q126.4 71.4 124.05 69.1Q121.7 66.8 121.7 62.4V29.3Q121.7 25 123.95 22.7Q126.2 20.4 130.4 20.4Q134.6 20.4 136.8 22.7Q139 25 139 29.3V33.4H138Q139 27.4 143.15 23.9Q147.3 20.4 153.5 20.2Q156.4 20.1 157.85 21.65Q159.3 23.2 159.4 27.4Q159.4 31 157.9 33.1Q156.4 35.2 152.2 35.6L149.9 35.8Q144.6 36.3 142.2 38.75Q139.8 41.2 139.8 46V62.4Q139.8 66.8 137.5 69.1Q135.2 71.4 130.8 71.4ZM174.2 71.4Q169.8 71.4 167.45 69.1Q165.1 66.8 165.1 62.4V29.3Q165.1 25 167.35 22.7Q169.6 20.4 173.8 20.4Q178 20.4 180.2 22.7Q182.4 25 182.4 29.3V33.4H181.4Q182.4 27.4 186.55 23.9Q190.7 20.4 196.9 20.2Q199.8 20.1 201.25 21.65Q202.7 23.2 202.8 27.4Q202.8 31 201.3 33.1Q199.8 35.2 195.6 35.6L193.3 35.8Q188 36.3 185.6 38.75Q183.2 41.2 183.2 46V62.4Q183.2 66.8 180.9 69.1Q178.6 71.4 174.2 71.4ZM225.6 71.6Q219.9 71.6 215.55 69.5Q211.2 67.4 208.75 63.75Q206.3 60.1 206.3 55.4Q206.3 50 209.1 46.9Q211.9 43.8 218.1 42.45Q224.3 41.1 234.6 41.1H240.1V49.5H234.6Q230.7 49.5 228.15 50.05Q225.6 50.6 224.4 51.75Q223.2 52.9 223.2 54.7Q223.2 57 224.85 58.5Q226.5 60 229.6 60Q232.1 60 234.05 58.9Q236 57.8 237.2 55.85Q238.4 53.9 238.4 51.3V39.7Q238.4 36.1 236.55 34.6Q234.7 33.1 230.2 33.1Q227.8 33.1 224.8 33.65Q221.8 34.2 218.1 35.6Q215.4 36.6 213.5 35.9Q211.6 35.2 210.55 33.5Q209.5 31.8 209.55 29.8Q209.6 27.8 210.85 26Q212.1 24.2 214.7 23.2Q219.5 21.4 223.55 20.8Q227.6 20.2 231 20.2Q239.2 20.2 244.55 22.55Q249.9 24.9 252.55 29.75Q255.2 34.6 255.2 42.2V62.4Q255.2 66.8 253.1 69.1Q251 71.4 247 71.4Q242.9 71.4 240.75 69.1Q238.6 66.8 238.6 62.4V59.8L239.2 61.2Q238.7 64.4 236.9 66.7Q235.1 69 232.2 70.3Q229.3 71.6 225.6 71.6Z" />
     </group>
 </vector>
