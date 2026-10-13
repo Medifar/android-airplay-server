@@ -114,6 +114,7 @@ fun MirraHome(
     val cable = remember { Animatable(if (intro) 0f else 1f) }
     val smile = remember { Animatable(1f) }
     val excited = remember { Animatable(1f) }
+    val eyesLift = remember { Animatable(0f) }
     val content = remember { Animatable(if (intro) 0f else 1f) }
     LaunchedEffect(Unit) {
         if (intro) {
@@ -127,6 +128,12 @@ fun MirraHome(
                 launch {
                     excited.animateTo(0f, tween(110))
                     excited.animateTo(1f, tween(170))
+                }
+                launch {
+                    // eyes lift as the cable connects, then settle
+                    eyesLift.animateTo(1f, tween(180, easing = FastOutSlowInEasing))
+                    delay(250)
+                    eyesLift.animateTo(0f, spring(dampingRatio = 0.5f, stiffness = 300f))
                 }
             }
             content.animateTo(1f, tween(500))
@@ -175,6 +182,9 @@ fun MirraHome(
                         }
                 ) {
                     Art(R.drawable.mirra_phone_character)
+                    Art(R.drawable.mirra_phone_eyes, Modifier.matchParentSize().graphicsLayer {
+                        translationY = -10.dp.toPx() * eyesLift.value
+                    })
                     Art(R.drawable.mirra_phone_excited, Modifier.matchParentSize().graphicsLayer { alpha = excited.value })
                 }
                 Box(
@@ -186,6 +196,9 @@ fun MirraHome(
                         }
                 ) {
                     Art(R.drawable.mirra_tv_character)
+                    Art(R.drawable.mirra_tv_eyes, Modifier.matchParentSize().graphicsLayer {
+                        translationY = -16.dp.toPx() * eyesLift.value
+                    })
                     Art(
                         R.drawable.mirra_tv_smile,
                         Modifier.matchParentSize().graphicsLayer {
@@ -198,9 +211,6 @@ fun MirraHome(
 
                 // copy, fades in after the cable connects
                 Box(Modifier.matchParentSize().graphicsLayer { alpha = content.value }) {
-                    StatusDot(dotColor, pulse = status == HomeStatus.READY && anims)
-                    Label(statusText(status), 806.124f, 205.441f, 640f, 58f, 45.909f, FontWeight.ExtraBold, 57.386f)
-
                     if (deviceName == "Mirra") {
                         Art(R.drawable.mirra_mirra_wordmark, Modifier.place(711.962f, 315.622f, 492.632f, 154.942f))
                     } else {
@@ -215,13 +225,16 @@ fun MirraHome(
                             centered = true
                         )
                     }
-                    Label(
-                        stringResource(R.string.home_subtitle), 460f, 490.074f, 1000f, 52f, 36.727f,
-                        FontWeight.ExtraBold, 51.647f, centered = true
-                    )
-                    if (status == HomeStatus.READY || status == HomeStatus.CONNECTING) {
-                        Art(R.drawable.mirra_wifi_lavender, Modifier.place(746.411f, 571.562f, 58.565f, 44.761f))
-                        Label(network.text, 825f, 572.710f, 520f, 44f, 32.136f, FontWeight.Bold, 43.613f)
+                    Row(
+                        modifier = Modifier.align(Alignment.TopCenter).offset(y = 500.dp).height(58.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        StatusDot(dotColor, pulse = status == HomeStatus.READY && anims)
+                        Spacer(Modifier.width(24.114.dp))
+                        BasicText(
+                            statusText(status), maxLines = 1, softWrap = false,
+                            style = homeText(45.909f, FontWeight.ExtraBold, 57.386f, Mirra.Cream)
+                        )
                     }
 
                     Label(stringResource(R.string.home_on_iphone), 59.713f, 768.969f, 500f, 50f, 36.727f, FontWeight.ExtraBold, 49.352f)
@@ -234,9 +247,8 @@ fun MirraHome(
                     Step(3, 1270.048f, R.drawable.mirra_receiver, 1364.211f, 845.866f, 81.531f, 79.192f, 1476.747f,
                         deviceName, stringResource(R.string.step_select_desc))
 
-                    Art(R.drawable.mirra_wifi_cream, Modifier.place(58.565f, 975.558f, 58.565f, 41.318f))
-                    Label(stringResource(R.string.home_same_wifi), 136.651f, 975.558f, 900f, 42f, 26.397f,
-                        FontWeight.Normal, 41.318f, Mirra.CreamSecondary)
+                    Art(R.drawable.mirra_wifi_lavender, Modifier.place(58.565f, 973.836f, 58.565f, 44.761f))
+                    Label(network.text, 136.651f, 975.558f, 900f, 42f, 26.397f, FontWeight.Bold, 41.318f)
                 }
 
                 // actions stay visible during the intro so the remote always has a target
@@ -321,7 +333,7 @@ private fun Divider(x: Float) {
 }
 
 @Composable
-private fun BoxScope.StatusDot(color: Color, pulse: Boolean) {
+private fun StatusDot(color: Color, pulse: Boolean) {
     // the ring animates around a solid dot so the label never flickers
     val ring = if (pulse) {
         rememberInfiniteTransition(label = "pulse").animateFloat(
@@ -330,7 +342,7 @@ private fun BoxScope.StatusDot(color: Color, pulse: Boolean) {
             label = "ring"
         )
     } else null
-    Box(Modifier.place(737.225f, 208.884f, 44.785f, 48.204f)) {
+    Box(Modifier.size(44.785.dp, 48.204.dp)) {
         Canvas(Modifier.matchParentSize()) {
             ring?.value?.let { p ->
                 drawCircle(color.copy(alpha = 0.5f * (1f - p)), radius = size.minDimension / 2.3f * (1f + 1.4f * p))
@@ -410,7 +422,7 @@ private fun BoxScope.CenterAction(label: String, onClick: () -> Unit) {
     Box(
         Modifier
             .align(Alignment.TopCenter)
-            .offset(y = 561.4.dp)
+            .offset(y = 590.dp)
             .height(65.42.dp)
             .mirraFocus(shape)
             .background(Mirra.Surface, shape)
@@ -499,7 +511,7 @@ private fun readNetwork(ctx: Context, wifi: String, ethernet: String, none: Stri
             val ssid = runCatching {
                 ctx.applicationContext.getSystemService(WifiManager::class.java)?.connectionInfo?.ssid
             }.getOrNull()?.removeSurrounding("\"")?.takeIf { it.isNotBlank() && it != "<unknown ssid>" }
-            NetworkLabel(Icons.Rounded.Wifi, listOfNotNull(wifi, ssid ?: ip).joinToString(" · "))
+            NetworkLabel(Icons.Rounded.Wifi, ssid ?: ip ?: wifi)
         }
         else -> NetworkLabel(Icons.Rounded.Wifi, listOfNotNull(wifi, ip).joinToString(" · "))
     }
