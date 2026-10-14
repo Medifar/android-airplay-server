@@ -1,6 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
-<vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="392dp" android:height="488dp" android:viewportWidth="392" android:viewportHeight="488">
-  <group android:translateX="372.375" android:translateY="194.9375">
-    <path android:pathData="M0 0 C7.09 4.12 11.24 9.88 13.56 17.69 C15.99 28.69 13.47 38.56 7.88 48.25 C-2.34 64.1 -16.1 78.2 -30.85 89.85 C-32.44 91.12 -34.02 92.4 -35.59 93.69 C-44.42 100.85 -53.71 107.09 -63.38 113.06 C-63.72 113.28 -63.72 113.28 -65.45 114.36 C-101.74 136.86 -143.7 150.58 -185.38 159.06 C-186.3 159.26 -187.23 159.45 -188.19 159.65 C-201.27 162.26 -214.4 162.36 -227.69 162.44 C-228.54 162.45 -229.38 162.45 -230.26 162.46 C-248.42 162.59 -269.39 161.5 -284.38 150.06 C-290.24 144.21 -293.36 136.95 -293.81 128.69 C-293.41 119.17 -289.27 111.44 -282.38 105.06 C-274.93 98.58 -266.42 98.82 -257.04 99.34 C-255.21 99.44 -253.39 99.52 -251.57 99.6 C-249.2 99.71 -246.82 99.81 -244.45 99.92 C-173.66 103.13 -105.94 73.13 -54.26 26.14 C-52.1 24.16 -49.96 22.18 -47.81 20.19 C-47.16 19.58 -46.5 18.97 -45.83 18.35 C-42.76 15.47 -39.9 12.57 -37.22 9.32 C-34.87 6.52 -32.59 4.58 -29.38 2.75 C-28.57 2.28 -27.77 1.81 -26.94 1.32 C-18.43 -2.87 -8.84 -3.92 0 0 Z " android:fillColor="#F2BD86" />
+<!-- tv smile; generated from the mirra-cleanup ready-screen.svg, placed at (1469.86, 136.578) -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="450.14dp" android:height="560.085dp" android:viewportWidth="450.14" android:viewportHeight="560.085">
+  <group android:translateX="-1469.86" android:translateY="-136.578">
+    <group android:translateX="0.0" android:translateY="114.77152049180329"><path android:pathData="M1593.88 373.007C1674.26 423.507 1795.98 361.53 1879.81 273.156" android:fillColor="#00000000" android:strokeColor="#F2BD86" android:strokeWidth="57" android:strokeLineCap="round" /></group>
   </group>
 </vector>

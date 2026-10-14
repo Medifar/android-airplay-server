@@ -90,12 +90,13 @@ enum class HomeStatus { READY, CONNECTING, MIRRORING, ERROR, STOPPED }
 private const val FRAME_W = 1920f
 private const val FRAME_H = 1080f
 
-// cable stroke from mirra_mirroring_cable.xml, kept as a path so it can draw on and carry the connecting dot
-private const val CABLE_PATH = "M 0 44 C 48 69 98 94 135 79 C 169 66 193 35 175 15 C 161 -3 136 7 125 27 " +
-    "C 109 56 129 101 154 127 C 237 215 469 230 637 225 C 789 222 880 202 925 173 C 950 157 950 135 932 124 " +
-    "C 915 113 896 126 899 143 C 902 170 932 184 954 176 C 994 164 1020 126 1040 83"
-private const val CABLE_VIEW_W = 1044f
-private const val CABLE_VIEW_H = 238f
+// cable stroke from the cleanup handoff, in frame coordinates, kept as a path so it can draw on and carry the connecting dot
+private const val CABLE_PATH =
+    "M317 509.471C371.713 538.147 428.705 566.824 470.879 549.618C509.634 534.706 536.99 499.147 516.473 476.206C50" +
+    "0.515 455.559 472.019 467.029 459.481 489.971C441.243 523.235 464.04 574.853 492.536 604.676C587.144 705.618 8" +
+    "51.588 722.824 1043.08 717.088C1216.34 713.647 1320.07 690.706 1371.36 657.441C1399.85 639.088 1399.85 613.853" +
+    " 1379.34 601.235C1359.96 588.618 1338.3 603.529 1341.72 623.029C1345.14 654 1379.34 670.059 1404.41 660.882C14" +
+    "50.01 647.118 1479.64 603.529 1502.44 554.206"
 
 @Composable
 fun MirraHome(
@@ -171,11 +172,11 @@ fun MirraHome(
                 Cable(
                     progress = { cable.value },
                     connecting = status == HomeStatus.CONNECTING && anims,
-                    modifier = Modifier.place(313.493f, 452f, 1198.852f, 258f)
+                    modifier = Modifier.matchParentSize()
                 )
                 Box(
                     Modifier
-                        .place(109.091f, 206.589f, 240.287f, 412.007f)
+                        .place(109.091f, 206.589f, 258.373f, 443.018f)
                         .graphicsLayer {
                             alpha = charIn.value
                             translationX = -40.dp.toPx() * (1f - charIn.value)
@@ -189,7 +190,7 @@ fun MirraHome(
                 }
                 Box(
                     Modifier
-                        .place(1469.856f, 136.578f, 450.144f, 560.085f)
+                        .place(1469.86f, 136.578f, 450.14f, 560.085f)
                         .graphicsLayer {
                             alpha = charIn.value
                             translationX = 40.dp.toPx() * (1f - charIn.value)
@@ -204,7 +205,7 @@ fun MirraHome(
                         Modifier.matchParentSize().graphicsLayer {
                             scaleX = smile.value
                             scaleY = smile.value
-                            transformOrigin = TransformOrigin(0.595f, 0.563f)
+                            transformOrigin = TransformOrigin(0.593f, 0.583f)
                         }
                     )
                 }
@@ -212,7 +213,7 @@ fun MirraHome(
                 // copy, fades in after the cable connects
                 Box(Modifier.matchParentSize().graphicsLayer { alpha = content.value }) {
                     if (deviceName == "Mirra") {
-                        Art(R.drawable.mirra_mirra_wordmark, Modifier.place(711.962f, 315.622f, 492.632f, 154.942f))
+                        Art(R.drawable.mirra_mirra_wordmark, Modifier.place(712f, 315.622f, 492.632f, 154.942f))
                     } else {
                         // custom receiver names can't use the outlined wordmark
                         val size = when {
@@ -225,17 +226,8 @@ fun MirraHome(
                             centered = true
                         )
                     }
-                    Row(
-                        modifier = Modifier.align(Alignment.TopCenter).offset(y = 482.dp).height(56.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        StatusDot(dotColor, pulse = status == HomeStatus.READY && anims)
-                        Spacer(Modifier.width(28.dp))
-                        BasicText(
-                            statusText(status), maxLines = 1, softWrap = false,
-                            style = homeText(40f, FontWeight.Normal, 56f, Mirra.Cream)
-                        )
-                    }
+                    StatusDot(dotColor, pulse = status == HomeStatus.READY && anims)
+                    Label(statusText(status), 796.899f, 489f, 760f, 57.386f, 45.909f, FontWeight.Normal, 57.386f)
 
                     Label(stringResource(R.string.home_on_iphone), 59.713f, 768.969f, 500f, 50f, 36.727f, FontWeight.ExtraBold, 49.352f)
                     Step(1, 59.713f, R.drawable.mirra_control_center, 163.062f, 842.423f, 81.531f, 86.079f, 275.598f,
@@ -247,8 +239,8 @@ fun MirraHome(
                     Step(3, 1270.048f, R.drawable.mirra_receiver, 1364.211f, 845.866f, 81.531f, 79.192f, 1476.747f,
                         deviceName, stringResource(R.string.step_select_desc))
 
-                    Art(R.drawable.mirra_wifi_lavender, Modifier.place(60f, 972f, 34f, 26f))
-                    Label(network.text, 114f, 965f, 900f, 40f, 24f, FontWeight.SemiBold, 40f)
+                    Art(R.drawable.mirra_wifi_lavender, Modifier.place(60f, 976.272f, 44.714f, 34.175f))
+                    Label(network.text, 120.002f, 977.149f, 900f, 33.298f, 24.535f, FontWeight.Bold, 33.298f)
                 }
 
                 // actions stay visible during the intro so the remote always has a target
@@ -256,15 +248,15 @@ fun MirraHome(
                     label = stringResource(R.string.tab_settings),
                     icon = R.drawable.mirra_settings,
                     onClick = onOpenSettings,
-                    modifier = Modifier.place(1658.182f, 32f, 219.330f, 64f).focusRequester(settingsFocus),
-                    iconStart = 34f, iconW = 34f, iconH = 34f, gap = 24f, textSize = 27f
+                    modifier = Modifier.place(1658.78f, 40.77f, 218.13f, 64.22f).focusRequester(settingsFocus),
+                    iconStart = 30.407f, iconW = 41.34f, iconH = 42.465f, gap = 20.674f, textSize = 27f
                 )
                 HomeAction(
                     label = stringResource(R.string.home_cant_find, deviceName),
                     icon = R.drawable.mirra_help,
                     onClick = onOpenHelp,
-                    modifier = Modifier.place(1600.766f, 965.229f, 281.340f, 65.420f),
-                    iconStart = 25.263f, iconW = 41.340f, iconH = 45.909f, gap = 17.224f, textSize = 22f
+                    modifier = Modifier.place(1601.37f, 965.829f, 280.14f, 64.22f),
+                    iconStart = 24.659f, iconW = 41.34f, iconH = 45.909f, gap = 17.222f, textSize = 22f
                 )
                 when (status) {
                     HomeStatus.ERROR, HomeStatus.STOPPED -> CenterAction(stringResource(R.string.btn_try_again), onRetry)
@@ -342,7 +334,7 @@ private fun StatusDot(color: Color, pulse: Boolean) {
             label = "ring"
         )
     } else null
-    Box(Modifier.size(32.dp)) {
+    Box(Modifier.place(737f, 500f, 36f, 36f)) {
         Canvas(Modifier.matchParentSize()) {
             ring?.value?.let { p ->
                 drawCircle(color.copy(alpha = 0.5f * (1f - p)), radius = size.minDimension / 2.3f * (1f + 1.4f * p))
@@ -369,7 +361,7 @@ private fun Cable(progress: () -> Float, connecting: Boolean, modifier: Modifier
         )
     } else null
     Canvas(modifier) {
-        scale(size.width / CABLE_VIEW_W, size.height / CABLE_VIEW_H, pivot = Offset.Zero) {
+        scale(size.width / FRAME_W, size.height / FRAME_H, pivot = Offset.Zero) {
             val t = progress()
             val stroke = Stroke(width = 9f, cap = StrokeCap.Round, join = StrokeJoin.Round)
             if (t >= 1f) {

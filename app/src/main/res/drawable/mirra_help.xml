@@ -1,6 +1,9 @@
 <?xml version='1.0' encoding='utf-8'?>
-<vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="36dp" android:height="40dp" android:viewportWidth="36" android:viewportHeight="40">
-  <path android:pathData="M5.0,20.0 a13.0,13.0 0 1,0 26.0,0 a13.0,13.0 0 1,0 -26.0,0 Z" android:fillColor="#00000000" android:strokeColor="#F6F0E5" android:strokeWidth="3" />
-  <path android:pathData="M14 16 C14 10 24 10 23 16 C22.5 19 18 18.5 18 23" android:fillColor="#00000000" android:strokeColor="#F6F0E5" android:strokeWidth="2.7" android:strokeLineCap="round" />
-  <path android:pathData="M16.5,28.0 a1.5,1.5 0 1,0 3.0,0 a1.5,1.5 0 1,0 -3.0,0 Z" android:fillColor="#F6F0E5" />
+<!-- help icon; generated from the mirra-cleanup ready-screen.svg, placed at (1626.0287, 975.558) -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="41.34dp" android:height="45.909dp" android:viewportWidth="41.34" android:viewportHeight="45.909">
+  <group android:translateX="-1626.0287" android:translateY="-975.558">
+    <path android:pathData="M1646.7 1013.43C1654.94 1013.43 1661.63 1006.75 1661.63 998.512C1661.63 990.272 1654.94 983.592 1646.7 983.592C1638.45 983.592 1631.77 990.272 1631.77 998.512C1631.77 1006.75 1638.45 1013.43 1646.7 1013.43Z" android:fillColor="#00000000" android:strokeColor="#F6F0E5" android:strokeWidth="3" />
+    <path android:pathData="M1642.11 993.922C1642.11 987.035 1653.59 987.035 1652.44 993.922C1651.87 997.365 1646.7 996.791 1646.7 1001.96" android:fillColor="#00000000" android:strokeColor="#F6F0E5" android:strokeWidth="2.7" android:strokeLineCap="round" />
+    <path android:pathData="M1646.7 1009.42C1647.65 1009.42 1648.42 1008.65 1648.42 1007.69C1648.42 1006.74 1647.65 1005.97 1646.7 1005.97C1645.75 1005.97 1644.98 1006.74 1644.98 1007.69C1644.98 1008.65 1645.75 1009.42 1646.7 1009.42Z" android:fillColor="#F6F0E5" />
+  </group>
 </vector>

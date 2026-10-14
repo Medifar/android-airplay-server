@@ -1,6 +1,9 @@
 <?xml version='1.0' encoding='utf-8'?>
-<vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="71dp" android:height="75dp" android:viewportWidth="71" android:viewportHeight="75">
-  <path android:pathData="M17.0,2.0 H53.0 Q67.0,2.0 67.0,16.0 V57.0 Q67.0,71.0 53.0,71.0 H17.0 Q3.0,71.0 3.0,57.0 V16.0 Q3.0,2.0 17.0,2.0 Z" android:fillColor="#00000000" android:strokeColor="#F6F0E5" android:strokeWidth="2.6" />
-  <path android:pathData="M13.5,22.0 a10.5,10.5 0 1,0 21.0,0 a10.5,10.5 0 1,0 -21.0,0 Z" android:fillColor="#F6F0E5" />
-  <path android:pathData="M24.5,40.0 H46.5 Q57.0,40.0 57.0,50.5 V50.5 Q57.0,61.0 46.5,61.0 H24.5 Q14.0,61.0 14.0,50.5 V50.5 Q14.0,40.0 24.5,40.0 Z" android:fillColor="#85858A" />
+<!-- control center icon; generated from the mirra-cleanup ready-screen.svg, placed at (163.062, 842.423) -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="81.531dp" android:height="86.079dp" android:viewportWidth="81.531" android:viewportHeight="86.079">
+  <group android:translateX="-163.062" android:translateY="-842.423">
+    <path android:pathData="M223.923 844.718H182.584C173.705 844.718 166.507 851.912 166.507 860.786V907.843C166.507 916.717 173.705 923.911 182.584 923.911H223.923C232.802 923.911 240 916.717 240 907.843V860.786C240 851.912 232.802 844.718 223.923 844.718Z" android:fillColor="#00000000" android:strokeColor="#F6F0E5" android:strokeWidth="2.6" />
+    <path android:pathData="M190.622 879.724C197.281 879.724 202.679 874.328 202.679 867.673C202.679 861.017 197.281 855.622 190.622 855.622C183.963 855.622 178.565 861.017 178.565 867.673C178.565 874.328 183.963 879.724 190.622 879.724Z" android:fillColor="#F6F0E5" />
+    <path android:pathData="M216.459 888.332H191.196C184.537 888.332 179.139 893.727 179.139 900.383C179.139 907.038 184.537 912.434 191.196 912.434H216.459C223.118 912.434 228.517 907.038 228.517 900.383C228.517 893.727 223.118 888.332 216.459 888.332Z" android:fillColor="#85858A" />
+  </group>
 </vector>

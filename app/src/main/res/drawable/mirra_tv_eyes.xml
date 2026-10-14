@@ -1,9 +1,8 @@
 <?xml version='1.0' encoding='utf-8'?>
-<vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="392dp" android:height="488dp" android:viewportWidth="392" android:viewportHeight="488">
-  <group android:translateX="309" android:translateY="120">
-    <path android:pathData="M0 0 C3.18 1.71 5.38 3.77 7 7 C8.4 19.8 3.53 31.81 -4 42 C-15.21 55.88 -31.7 65.07 -49.33 67.72 C-63.77 69.24 -77.54 66.51 -89.1 57.34 C-93.99 52.79 -98.07 47.25 -98.44 40.38 C-97.84 35.79 -96.46 32.63 -93.38 29.19 C-89.68 27.34 -86.12 26.77 -82 27 C-79.47 28.26 -78.03 29.17 -76 31 C-67.83 38.32 -62.03 40.84 -50.87 40.42 C-42.07 39.73 -33.98 35.51 -28.16 28.91 C-24.23 23.49 -21.71 18.31 -19.86 11.91 C-18.23 6.6 -15.63 4.23 -11.49 0.71 C-7.95 -0.99 -3.79 -0.59 0 0 Z " android:fillColor="#F6F0E5" />
-  </group>
-  <group android:translateX="180" android:translateY="162">
-    <path android:pathData="M0 0 C3.75 2 5.65 3.96 7 8 C8.28 19.02 4.25 30 -2 39 C-4.83 42.51 -7.84 45.78 -11 49 C-11.54 49.57 -12.09 50.13 -12.64 50.72 C-23.74 61.28 -39.73 65.53 -54.64 65.42 C-65.3 65.06 -75.57 61.68 -84 55 C-88.6 50.05 -91.36 45.73 -91.21 38.77 C-90.73 34.73 -88.42 32.11 -85.38 29.62 C-81.99 27.58 -79.13 27.63 -75.29 28.25 C-71.95 29.34 -69.65 31.29 -66.95 33.5 C-60.46 38.5 -52.94 38.9 -45 38 C-34.89 35.55 -27.8 29.15 -22.29 20.53 C-20.84 17.68 -19.96 14.88 -19.06 11.81 C-17.58 7.06 -16.14 3.89 -12.06 0.93 C-8.05 -0.89 -4.26 -0.95 0 0 Z " android:fillColor="#F6F0E5" />
+<!-- tv eyes; generated from the mirra-cleanup ready-screen.svg, placed at (1469.86, 136.578) -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="450.14dp" android:height="560.085dp" android:viewportWidth="450.14" android:viewportHeight="560.085">
+  <group android:translateX="-1469.86" android:translateY="-136.578">
+    <group android:translateX="0.0" android:translateY="114.77152049180329"><path android:pathData="M1585.84 247.906C1605.36 267.418 1651.29 267.418 1668.52 220.361" android:fillColor="#00000000" android:strokeColor="#F6F0E5" android:strokeWidth="25" android:strokeLineCap="round" /></group>
+    <group android:translateX="0.0" android:translateY="114.77152049180329"><path android:pathData="M1725.93 199.702C1747.75 221.509 1794.83 218.066 1815.5 173.305" android:fillColor="#00000000" android:strokeColor="#F6F0E5" android:strokeWidth="25" android:strokeLineCap="round" /></group>
   </group>
 </vector>
