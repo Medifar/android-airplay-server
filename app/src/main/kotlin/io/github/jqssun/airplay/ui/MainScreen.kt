@@ -75,7 +75,7 @@ import androidx.media3.ui.compose.material3.indicator.ProgressSlider
 import kotlin.math.abs
 import kotlinx.coroutines.delay
 
-private enum class Page { HOME, SETTINGS, LOGS, HELP }
+private enum class Page { HOME, SETTINGS, LOGS, HELP, FILES }
 
 @Composable
 fun MainScreen(
@@ -513,6 +513,7 @@ fun MainScreen(
                 onIntroDone = { introPlayed = true },
                 onOpenSettings = { page = Page.SETTINGS },
                 onOpenHelp = { page = Page.HELP },
+                onOpenFiles = { page = Page.FILES },
                 onShowScreen = { fullscreen = true }
             )
             Page.SETTINGS -> {
@@ -527,6 +528,7 @@ fun MainScreen(
                 BackHandler { page = Page.SETTINGS }
                 LogsScreen(viewModel, onBack = { page = Page.SETTINGS })
             }
+            Page.FILES -> io.github.jqssun.airplay.files.FilesScreen(onExit = { page = Page.HOME })
             Page.HELP -> {
                 BackHandler { page = Page.HOME }
                 val serverName by viewModel.serverName.collectAsState()
@@ -563,6 +565,7 @@ private fun HomeContent(
     onIntroDone: () -> Unit,
     onOpenSettings: () -> Unit,
     onOpenHelp: () -> Unit,
+    onOpenFiles: () -> Unit,
     onShowScreen: () -> Unit,
 ) {
     val state by viewModel.serverState.collectAsState()
@@ -598,6 +601,7 @@ private fun HomeContent(
         onIntroDone = onIntroDone,
         onOpenSettings = onOpenSettings,
         onOpenHelp = onOpenHelp,
+        onOpenFiles = onOpenFiles,
         onRetry = { viewModel.startServer() },
         onShowScreen = onShowScreen,
     )

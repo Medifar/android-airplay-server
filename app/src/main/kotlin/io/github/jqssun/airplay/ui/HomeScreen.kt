@@ -106,6 +106,7 @@ fun MirraHome(
     onIntroDone: () -> Unit,
     onOpenSettings: () -> Unit,
     onOpenHelp: () -> Unit,
+    onOpenFiles: () -> Unit,
     onRetry: () -> Unit,
     onShowScreen: () -> Unit,
 ) {
@@ -250,6 +251,13 @@ fun MirraHome(
                     onClick = onOpenSettings,
                     modifier = Modifier.place(1658.78f, 40.77f, 218.13f, 64.22f).focusRequester(settingsFocus),
                     iconStart = 30.407f, iconW = 41.34f, iconH = 42.465f, gap = 20.674f, textSize = 27f
+                )
+                HomeAction(
+                    label = stringResource(R.string.home_mac_files),
+                    icon = R.drawable.mirra_folder,
+                    onClick = onOpenFiles,
+                    modifier = Modifier.place(1402.78f, 40.77f, 236f, 64.22f),
+                    iconStart = 28f, iconW = 40f, iconH = 32.7f, gap = 18f, textSize = 27f
                 )
                 HomeAction(
                     label = stringResource(R.string.home_cant_find, deviceName),

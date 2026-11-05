@@ -12,6 +12,8 @@ datastore = "1.1.1"
 coroutines = "1.9.0"
 media3 = "1.11.0-beta01"
 oboe = "1.9.3"
+smbj = "0.15.0"
+dcerpc = "0.12.13"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "core-ktx" }
@@ -42,6 +44,8 @@ media3-ui-compose-material3 = { group = "androidx.media3", name = "media3-ui-com
 kotlinx-coroutines = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "coroutines" }
 
 oboe = { group = "com.google.oboe", name = "oboe", version.ref = "oboe" }
+smbj = { group = "com.hierynomus", name = "smbj", version.ref = "smbj" }
+dcerpc = { group = "com.rapid7.client", name = "dcerpc", version.ref = "dcerpc" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

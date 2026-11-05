@@ -34,8 +34,8 @@ android {
         applicationId = "io.github.jqssun.airplay"
         minSdk = 24
         targetSdk = 36
-        versionCode = 33
-        versionName = "0.0.33"
+        versionCode = 34
+        versionName = "0.0.34"
 
         externalNativeBuild {
             cmake {
@@ -90,6 +90,12 @@ android {
         jvmTarget = "17"
     }
 
+    packaging {
+        resources {
+            excludes += setOf("META-INF/versions/9/OSGI-INF/MANIFEST.MF", "META-INF/DEPENDENCIES", "META-INF/INDEX.LIST")
+        }
+    }
+
     buildFeatures {
         compose = true
         prefab = true
@@ -136,6 +142,8 @@ dependencies {
     implementation(libs.media3.transformer)
     implementation(libs.kotlinx.coroutines)
     implementation(libs.oboe)
+    implementation(libs.smbj)
+    implementation(libs.dcerpc)
 
     implementation(platform(libs.compose.bom))
     implementation(libs.compose.ui)

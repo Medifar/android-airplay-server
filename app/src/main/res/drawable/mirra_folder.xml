@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- mac files entry on the home screen; same cream as the settings glyph -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="44dp" android:height="36dp"
+    android:viewportWidth="44" android:viewportHeight="36">
+    <path android:fillColor="#F6F0E5"
+        android:pathData="M4,0H16.5C17.6,0 18.6,0.5 19.3,1.3L22.4,5H40C42.2,5 44,6.8 44,9V32C44,34.2 42.2,36 40,36H4C1.8,36 0,34.2 0,32V4C0,1.8 1.8,0 4,0ZM4,11V32H40V11Z" />
+</vector>
